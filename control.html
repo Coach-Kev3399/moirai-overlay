@@ -22,12 +22,13 @@ async function load(){let {data,error}=await sb.from('overlay_state').select('st
 function file(inp,side){inp.onchange=e=>{let f=e.target.files[0];if(!f)return;if(f.size>700000){E('status').textContent='Please use a logo smaller than 700 KB.';return}if(side==='l'){let rd=new FileReader();rd.onload=()=>{leftLogo=rd.result;E('leftPreview').src=leftLogo;save()};rd.readAsDataURL(f)}}}file(E('leftLogoFile'),'l');
 
 const teamFromFile=n=>{try{return decodeURIComponent(n.split('__')[0])}catch{return n.split('__')[0]}};
+const publicLogoUrl=name=>SUPABASE_URL+'/storage/v1/object/public/team-logos/'+name.split('/').map(encodeURIComponent).join('/');
 async function loadOpponentLibrary(){
   const sel=E('opponentLibrary'); sel.innerHTML='<option value="">— Select saved team —</option>';
   const {data,error}=await sb.storage.from('team-logos').list('',{limit:200,sortBy:{column:'name',order:'asc'}});
   if(error){E('status').textContent='Logo library error: '+error.message;return}
   (data||[]).filter(x=>x.name&&!x.name.endsWith('/')).forEach(x=>{
-    const {data:u}=sb.storage.from('team-logos').getPublicUrl(x.name);
+    const u={publicUrl:publicLogoUrl(x.name)};
     const o=document.createElement('option');o.value=x.name;o.textContent=teamFromFile(x.name);o.dataset.url=u.publicUrl;sel.appendChild(o);
   });
 }
@@ -41,7 +42,7 @@ async function uploadOpponent(){
   E('status').textContent='Uploading team logo…';
   const {error}=await sb.storage.from('team-logos').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||undefined});
   if(error){E('status').textContent='Logo upload failed: '+error.message;return}
-  const {data:u}=sb.storage.from('team-logos').getPublicUrl(path);
+  const u={publicUrl:publicLogoUrl(path)};
   rightLogo=u.publicUrl;E('rightPreview').src=rightLogo;
   await loadOpponentLibrary();
   E('opponentLibrary').value=path;
