@@ -38,7 +38,8 @@ async function uploadOpponent(){
   if(!file){E('status').textContent='Choose a logo image first.';return}
   if(file.size>2000000){E('status').textContent='Please use a logo smaller than 2 MB.';return}
   const ext=(file.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const path=encodeURIComponent(team)+'__'+Date.now()+'.'+ext;
+  const safeTeam=team.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'')||'team';
+  const path=safeTeam+'__'+Date.now()+'.'+ext;
   E('status').textContent='Uploading team logo…';
   const {error}=await sb.storage.from('team-logos').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||undefined});
   if(error){E('status').textContent='Logo upload failed: '+error.message;return}
