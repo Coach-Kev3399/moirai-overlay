@@ -27,7 +27,7 @@ async function loadOpponentLibrary(){
   const sel=E('opponentLibrary'); sel.innerHTML='<option value="">— Select saved team —</option>';
   const {data,error}=await sb.storage.from('team-logos').list('',{limit:200,sortBy:{column:'name',order:'asc'}});
   if(error){E('status').textContent='Logo library error: '+error.message;return}
-  (data||[]).filter(x=>x.name&&!x.name.endsWith('/')).forEach(x=>{
+  (data||[]).filter(x=>x.name&&!x.name.endsWith('/')).sort((a,b)=>teamFromFile(a.name).localeCompare(teamFromFile(b.name),undefined,{sensitivity:'base'})).forEach(x=>{
     const u={publicUrl:publicLogoUrl(x.name)};
     const o=document.createElement('option');o.value=x.name;o.textContent=teamFromFile(x.name);o.dataset.url=u.publicUrl;sel.appendChild(o);
   });
