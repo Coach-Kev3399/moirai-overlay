@@ -1,11 +1,11 @@
-# MOIRAI Local VOD AI Analyzer V2 (audio + visual frame extraction)
+# MOIRAI Local VOD AI Analyzer V3 (continuous visual scan + scene segmentation)
 # Usage: python vod_ai.py "VIDEO.mp4"
 # Optional YouTube input requires yt-dlp installed: python vod_ai.py "https://youtu.be/..."
 #
 # This first prototype uses audio/transcription to propose event candidates.
 # It does NOT pretend audio alone can reliably identify visual saves/blocks/shots.
 
-import sys, os, re, csv, json, subprocess, tempfile, hashlib
+import sys, os, re, csv, json, subprocess, tempfile, hashlib, math
 from pathlib import Path
 
 def get_video(src, work):
@@ -84,6 +84,62 @@ def extract_frame(video, sec, out):
     subprocess.run(["ffmpeg","-y","-ss",f"{max(0,sec):.2f}","-i",video,"-frames:v","1","-q:v","2",str(out)],
                    stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True)
 
+
+def continuous_visual_scan(video, out_dir, interval=2.0):
+    """Scan the full VOD cheaply and flag major visual transitions for dense review."""
+    try:
+        from PIL import Image, ImageStat, ImageChops
+    except ImportError:
+        raise SystemExit("V3 needs Pillow once: pip install pillow")
+    out_dir=Path(out_dir); scan_dir=out_dir/"scan"; event_dir=out_dir/"transitions"
+    scan_dir.mkdir(parents=True,exist_ok=True); event_dir.mkdir(parents=True,exist_ok=True)
+    duration=video_duration(video)
+    samples=[]; previous=None
+    total=max(1,math.ceil(duration/interval))
+    print(f"Continuous visual scan: ~{total} samples every {interval:g}s...")
+    i=0; t=0.0
+    while t<duration:
+        tmp=scan_dir/f"{i:05d}.jpg"
+        extract_frame(video,t,tmp)
+        with Image.open(tmp) as im:
+            thumb=im.convert("L").resize((160,90))
+            brightness=ImageStat.Stat(thumb).mean[0]
+            change=0.0 if previous is None else ImageStat.Stat(ImageChops.difference(thumb,previous)).mean[0]
+            previous=thumb.copy()
+        samples.append({"time":round(t,2),"timestamp":stamp(t),"brightness":round(brightness,2),"change":round(change,2)})
+        tmp.unlink(missing_ok=True)
+        i+=1; t+=interval
+        if i%100==0: print(f"  scanned {min(t,duration):.0f}/{duration:.0f}s")
+    # Dynamic threshold: scene/UI transitions should stand out from ordinary play.
+    changes=sorted(x["change"] for x in samples[1:])
+    p90=changes[int(.90*(len(changes)-1))] if changes else 0
+    threshold=max(18.0,p90*1.35)
+    raw=[x for x in samples if x["change"]>=threshold]
+    # Merge nearby detections into one transition.
+    transitions=[]
+    for x in raw:
+        if not transitions or x["time"]-transitions[-1]["time"]>6:
+            transitions.append(dict(x))
+        elif x["change"]>transitions[-1]["change"]:
+            transitions[-1]=dict(x)
+    # Dense evidence around each transition.
+    evidence=[]
+    for idx,x in enumerate(transitions,1):
+        for delta in (-6,-4,-2,0,2,4,6):
+            tt=min(max(0,x["time"]+delta),max(0,duration-.1))
+            name=f"transition_{idx:03d}_{stamp(tt).replace(':','-')}_{delta:+d}s.jpg"
+            extract_frame(video,tt,event_dir/name)
+            evidence.append({"transition_id":idx,"time":round(tt,2),"timestamp":stamp(tt),
+                             "offset":delta,"file":f"transitions/{name}","change":x["change"]})
+    result={"interval_seconds":interval,"threshold":round(threshold,2),
+            "samples":samples,"transitions":transitions,"evidence":evidence}
+    (out_dir/"visual-scan.json").write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
+    # A compact CSV makes the detected boundaries easy to inspect.
+    with open(out_dir/"transitions.csv","w",newline="",encoding="utf-8-sig") as fh:
+        w=csv.writer(fh,delimiter=";"); w.writerow(["TIMESTAMP","SECONDS","CHANGE"])
+        for x in transitions:w.writerow([x["timestamp"],x["time"],x["change"]])
+    return result
+
 def visual_evidence(video, events, out_dir):
     """Extract context frames around audio candidates plus periodic overview frames."""
     out_dir=Path(out_dir); out_dir.mkdir(parents=True,exist_ok=True)
@@ -123,6 +179,8 @@ def main():
         wav=extract_audio(video,work)
         segs=transcribe(wav)
         events=candidates(segs)
+        scan=continuous_visual_scan(video,"moirai-v3-visual-scan",2.0)
+        print(f"Detected {len(scan['transitions'])} major visual transitions.")
         print(f"Extracting visual evidence around {len(events)} audio candidates...")
         frames=visual_evidence(video,events,"moirai-visual-evidence")
         Path("moirai-transcript.json").write_text(json.dumps(segs,ensure_ascii=False,indent=2),encoding="utf-8")
@@ -130,8 +188,9 @@ def main():
             w=csv.writer(f,delimiter=";")
             w.writerow(["TIMESTAMP","TYPE","CONFIDENCE","TRANSCRIPT"])
             for e in events:w.writerow([stamp(e["timestamp"]),e["type"],e["confidence"],e["transcript"]])
-        print(f"Done: {len(segs)} transcript segments, {len(events)} audio candidates, {len(frames)} evidence frames")
+        print(f"Done: {len(segs)} transcript segments, {len(events)} audio candidates, {len(scan['transitions'])} visual transitions, {len(frames)} audio evidence frames")
         print("Created moirai-ai-candidates.csv, moirai-transcript.json, and moirai-visual-evidence/")
-        print("Next: zip the moirai-visual-evidence folder and upload it for visual review.")
+        print("V3 created moirai-v3-visual-scan/ with transitions.csv, visual-scan.json and dense transition frames.")
+        print("Next: zip moirai-v3-visual-scan and upload it for calibration.")
 
 if __name__=="__main__": main()
