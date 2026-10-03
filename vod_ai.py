@@ -35,11 +35,28 @@ def extract_audio(video, work):
 def transcribe(wav):
     try:
         from faster_whisper import WhisperModel
+        import numpy as np
     except ImportError:
-        raise SystemExit("Install first: pip install faster-whisper")
+        raise SystemExit("Install first: pip install faster-whisper numpy")
+    # Decode WAV with Python instead of PyAV. This avoids PyAV API-version
+    # incompatibilities (e.g. metadata_errors) on Windows.
+    import wave
+    with wave.open(wav,"rb") as wf:
+        channels=wf.getnchannels()
+        width=wf.getsampwidth()
+        rate=wf.getframerate()
+        raw=wf.readframes(wf.getnframes())
+    if width != 2:
+        raise RuntimeError(f"Expected 16-bit WAV, got {width*8}-bit")
+    audio=np.frombuffer(raw,dtype=np.int16).astype(np.float32)/32768.0
+    if channels>1:
+        audio=audio.reshape(-1,channels).mean(axis=1)
+    if rate != 16000:
+        raise RuntimeError(f"Expected 16000 Hz WAV, got {rate}")
     model=WhisperModel("small",device="cpu",compute_type="int8")
-    segs,info=model.transcribe(wav,vad_filter=True)
-    return [{"start":s.start,"end":s.end,"text":s.text.strip()} for s in segs]
+    print("Whisper transcription started...")
+    segs,info=model.transcribe(audio,vad_filter=True)
+    return [{"start":x.start,"end":x.end,"text":x.text.strip()} for x in segs]
 
 KEYWORDS={
  "GOAL":["goal","scores","scored","tor","treffer"],
