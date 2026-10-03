@@ -5,14 +5,23 @@
 # This first prototype uses audio/transcription to propose event candidates.
 # It does NOT pretend audio alone can reliably identify visual saves/blocks/shots.
 
-import sys, os, re, csv, json, subprocess, tempfile
+import sys, os, re, csv, json, subprocess, tempfile, hashlib
 from pathlib import Path
 
 def get_video(src, work):
     if src.startswith(("http://","https://")):
-        out=str(Path(work)/"vod.%(ext)s")
+        cache=Path.home()/".moirai-vod-cache"
+        cache.mkdir(parents=True,exist_ok=True)
+        key=hashlib.sha1(src.encode("utf-8")).hexdigest()[:12]
+        cached=cache/f"{key}.mp4"
+        if cached.exists() and cached.stat().st_size>1024*1024:
+            print(f"Using cached VOD: {cached}")
+            return str(cached)
+        out=str(cache/f"{key}.%(ext)s")
+        print(f"Downloading VOD once; future runs will reuse: {cached}")
         subprocess.run(["yt-dlp","-f","bv*+ba/b","--merge-output-format","mp4","-o",out,src],check=True)
-        files=list(Path(work).glob("vod.*"))
+        if cached.exists(): return str(cached)
+        files=list(cache.glob(f"{key}.*"))
         if not files: raise RuntimeError("yt-dlp produced no video")
         return str(files[0])
     return src
