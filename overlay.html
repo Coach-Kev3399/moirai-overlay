@@ -17,13 +17,13 @@
 .socialScoreCover{position:absolute;left:50%;top:4.15%;transform:translateX(-50%);width:9.1%;height:4.05%;z-index:8500;overflow:hidden;border:1px solid #e7b83e;background:#050505;box-shadow:0 5px 16px #000,0 0 4px rgba(231,184,62,.28),inset 0 0 0 1px #1d1d1d;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:socialBorderPulse 2.4s ease-in-out infinite}
 .socialScoreCover:before{content:"";position:absolute;inset:2px;border:1px solid rgba(231,184,62,.16);background:#050505}
 .socialScoreCover:after{content:none}
-.socialSlide{position:absolute;inset:0;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;column-gap:4px;padding:5px 3px 0 5px;opacity:0;transform:translateY(8px);animation:socialRotate 16s ease-in-out infinite;text-align:left}
+.socialSlide{position:absolute;inset:0;display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;column-gap:5px;padding:2px 6px 0 7px;opacity:0;transform:translateY(8px);animation:socialRotate 16s ease-in-out infinite;text-align:left}
 .socialSlide:nth-child(2){animation-delay:4s}.socialSlide:nth-child(3){animation-delay:8s}.socialSlide:nth-child(4){animation-delay:12s}
-.socialIcon{width:27px;height:27px;display:grid;place-items:center;color:#e7b83e;justify-self:start;transform:translateY(1px)}
-.socialIcon svg{width:24px;height:24px;fill:currentColor}
+.socialIcon{width:21px;height:21px;display:grid;place-items:center;color:#e7b83e;justify-self:start;transform:translateY(1px)}
+.socialIcon svg{width:18px;height:18px;fill:currentColor}
 .socialCopy{display:flex;align-items:center;justify-content:flex-start;line-height:1;min-width:0}
 .socialNetwork{display:none}
-.socialHandle{font-size:21px;font-weight:950;letter-spacing:-.35px;color:#fff;white-space:nowrap;display:block;transform:translateY(2px) scaleX(1.08);transform-origin:left center}
+.socialHandle{font-size:14px;font-weight:950;letter-spacing:0;color:#fff;white-space:nowrap;display:block;transform:translateY(1px);transform-origin:left center}
 @keyframes socialBorderPulse{0%,100%{border-color:#9c7925;box-shadow:0 5px 16px #000,0 0 2px rgba(231,184,62,.15),inset 0 0 0 1px #1d1d1d}50%{border-color:#ffd86a;box-shadow:0 5px 16px #000,0 0 9px rgba(231,184,62,.7),inset 0 0 5px rgba(231,184,62,.12)}}@keyframes socialRotate{0%,5%{opacity:0;transform:translateY(12px)}10%,28%{opacity:1;transform:translateY(0)}33%,100%{opacity:0;transform:translateY(-12px)}}
 @keyframes socialSweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 </style></head><body>
