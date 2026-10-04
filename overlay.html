@@ -14,17 +14,17 @@
 .testflash{position:fixed;inset:0;pointer-events:none;opacity:0;border:10px solid var(--gold)}body.testing .testflash{animation:test .9s ease}@keyframes test{25%{opacity:1}100%{opacity:0}}
 
 /* CLOUD v11 — rotating social score-cover block */
-.socialScoreCover{position:absolute;left:50%;top:4.15%;transform:translateX(-50%);width:9.1%;height:4.05%;z-index:8500;overflow:hidden;border:1px solid #e7b83e;background:#050505;box-shadow:0 5px 16px #000,inset 0 0 0 1px #1d1d1d;display:flex;align-items:center;justify-content:center;pointer-events:none;clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)}
-.socialScoreCover:before{content:"";position:absolute;inset:3px;border:1px solid rgba(231,184,62,.18);background:#050505}
-.socialScoreCover:after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#e7b83e,transparent);animation:socialSweep 3.4s linear infinite}
-.socialSlide{position:absolute;inset:0;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;padding:0 8px;opacity:0;transform:translateY(8px);animation:socialRotate 16s ease-in-out infinite;text-align:left}
+.socialScoreCover{position:absolute;left:50%;top:4.15%;transform:translateX(-50%);width:9.1%;height:4.05%;z-index:8500;overflow:hidden;border:1px solid #e7b83e;background:#050505;box-shadow:0 5px 16px #000,0 0 4px rgba(231,184,62,.28),inset 0 0 0 1px #1d1d1d;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:socialBorderPulse 2.4s ease-in-out infinite}
+.socialScoreCover:before{content:"";position:absolute;inset:2px;border:1px solid rgba(231,184,62,.16);background:#050505}
+.socialScoreCover:after{content:none}
+.socialSlide{position:absolute;inset:0;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:5px;padding:0 7px;opacity:0;transform:translateY(8px);animation:socialRotate 16s ease-in-out infinite;text-align:left}
 .socialSlide:nth-child(2){animation-delay:4s}.socialSlide:nth-child(3){animation-delay:8s}.socialSlide:nth-child(4){animation-delay:12s}
-.socialIcon{width:17px;height:17px;display:grid;place-items:center;color:#e7b83e;flex:0 0 17px}
-.socialIcon svg{width:16px;height:16px;fill:currentColor}
+.socialIcon{width:18px;height:18px;display:grid;place-items:center;color:#e7b83e;flex:0 0 18px;margin-left:0}
+.socialIcon svg{width:17px;height:17px;fill:currentColor}
 .socialCopy{display:flex;flex-direction:column;align-items:flex-start;line-height:1}
-.socialNetwork{font-size:5px;letter-spacing:1.2px;color:#b99a4d;margin-bottom:3px}
-.socialHandle{font-size:8px;font-weight:900;letter-spacing:.25px;color:#fff;white-space:nowrap}
-@keyframes socialRotate{0%,5%{opacity:0;transform:translateY(12px)}10%,28%{opacity:1;transform:translateY(0)}33%,100%{opacity:0;transform:translateY(-12px)}}
+.socialNetwork{font-size:5px;letter-spacing:1px;color:#b99a4d;margin-bottom:2px}
+.socialHandle{font-size:9px;font-weight:900;letter-spacing:.1px;color:#fff;white-space:nowrap}
+@keyframes socialBorderPulse{0%,100%{border-color:#9c7925;box-shadow:0 5px 16px #000,0 0 2px rgba(231,184,62,.15),inset 0 0 0 1px #1d1d1d}50%{border-color:#ffd86a;box-shadow:0 5px 16px #000,0 0 9px rgba(231,184,62,.7),inset 0 0 5px rgba(231,184,62,.12)}}@keyframes socialRotate{0%,5%{opacity:0;transform:translateY(12px)}10%,28%{opacity:1;transform:translateY(0)}33%,100%{opacity:0;transform:translateY(-12px)}}
 @keyframes socialSweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 </style></head><body>
 <div id="socials" class="socialScoreCover" aria-hidden="true">
