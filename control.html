@@ -68,7 +68,7 @@ function file(inp,side){inp.onchange=e=>{let f=e.target.files[0];if(!f)return;if
 
 const teamFromFile=n=>{try{return decodeURIComponent(n.split('__')[0])}catch{return n.split('__')[0]}};
 const publicLogoUrl=name=>SUPABASE_URL+'/storage/v1/object/public/team-logos/'+name.split('/').map(encodeURIComponent).join('/');
-async async function loadOpponentLibrary(){
+async function loadOpponentLibrary(){
   const sel=E('opponentLibrary'),live=E('liveOpponent'); sel.innerHTML='<option value="">— Select saved team —</option>';live.innerHTML='<option value="">— Select opponent —</option>';
   const {data,error}=await sb.storage.from('team-logos').list('',{limit:200,sortBy:{column:'name',order:'asc'}});
   if(error){E('status').textContent='Logo library error: '+error.message;return}
