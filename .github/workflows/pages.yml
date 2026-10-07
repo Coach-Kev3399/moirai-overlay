@@ -1,9 +1,13 @@
-name: Deploy GitHub Pages
+name: Deploy GitHub Pages v143
 
 on:
   push:
     branches: ["main"]
   workflow_dispatch:
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 permissions:
   contents: read
